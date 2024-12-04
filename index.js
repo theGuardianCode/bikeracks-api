@@ -21,7 +21,7 @@ db.all("SELECT name FROM PRAGMA_TABLE_INFO('bikeracks');", (err, rows) => {
 })
 
 app.listen(port, () => {
-    console.log(`It's alive on http://localhost:${port}`)
+    console.log(`It's alive`)
 })
 
 app.use(express.json())
@@ -60,7 +60,6 @@ app.get("/racks", (req, res) => {
 })
 
 app.get("/search", (req, res) => {
-    console.log(req.query.where)
     if (req.query.where) {
         db.all(`SELECT * FROM bikeracks WHERE ${req.query.where};`, (err, rows) => {
             if (err) {
@@ -74,7 +73,6 @@ app.get("/search", (req, res) => {
 })
 
 app.post("/racks", (req, res) => {
-    console.log(req.body)
     const { suburb, address, location, capacity, rack_type, latitude, longitude, key } = req.body
     if (key == process.env.key) {
         const query = "INSERT INTO bikeracks (suburb, address, location, capacity, rack_type, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?);"
