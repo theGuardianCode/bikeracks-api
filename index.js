@@ -1,5 +1,6 @@
 import sqlite3 from "sqlite3"
 import express from "express"
+import "dotenv/config"
 
 const app  = express()
 const port = 8080
@@ -21,6 +22,8 @@ db.all("SELECT name FROM PRAGMA_TABLE_INFO('bikeracks');", (err, rows) => {
 app.listen(port, () => {
     console.log(`It's alive on http://localhost:${port}`)
 })
+
+app.use(express.json())
 
 app.get("/racks", (req, res) => {
     let where_clause = ""
@@ -47,6 +50,7 @@ app.get("/racks", (req, res) => {
             console.error(`URL: ${req.protocol} at ${req.originalUrl}`)
             console.error(`Error: ${err}`)
             console.error(sql)
+            res.status(500)
         } else {
             res.send(rows)
         }
@@ -60,10 +64,27 @@ app.get("/search", (req, res) => {
             if (err) {
                 console.error(err)
             }
-            console.log(rows)
             res.send(rows)
         })
     } else {
-        res.send({"err": "no 'where' parameter provided"})
+        res.status(400).send({"error": "no 'where' parameter provided"})
+    }
+})
+
+app.post("/racks", (req, res) => {
+    console.log(req.body)
+    const { suburb, address, location, capacity, rack_type, latitude, longitude, key } = req.body
+    if (key == process.env.key) {
+        const query = "INSERT INTO bikeracks (suburb, address, location, capacity, rack_type, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?);"
+        db.run(query, [suburb, address, location, capacity, rack_type, latitude, longitude], (err, rows) => {
+            if (err) {
+                console.error(err)
+                res.status(500)
+            } else {
+                res.status(201).send({"msg": "Resource created"})
+            }
+        })
+    } else {
+        res.status(401).send({"error": "An invalid API key was provided"})
     }
 })
